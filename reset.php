@@ -49,7 +49,7 @@ if (isset($_GET['lang'])){
              'dbcons'        =>  'Database connection established  ...',
              'cmpl'         =>  'User inserted and given administrator privileges. You can now login.<br>Script complete.
         <br> Script created by Fredrik Vittfarne (<a href="http://fidde.nu" target="_blank">http://fidde.nu</a>).<br>
-        This is avaible @ <a href="http://github.com/vittfarne/wpreset" target="_blank">http://github.com/vittfarne/wpreset</a>',
+        This is avaible @ <a href="http://github.com/vittfarne/WordPress-Password-Resetscript" target="_blank">http://github.com/vittfarne/WordPress-Password-Resetscript</a>',
              'langnames'     =>   [
                  'en'    =>  'English',
                  'sv'    =>  'Swedish'
@@ -74,7 +74,7 @@ if (isset($_GET['lang'])){
             'dbcons'        =>  'Databasanslutningen lyckades ...',
             'cmpl'         =>  'User inserted and given administrator privileges. You can now login.<br>Script complete.
     <br> Script created by Fredrik Vittfarne (<a href="http://fidde.nu" target="_blank">http://fidde.nu</a>).<br>
-    This is avaible @ <a href="http://github.com/vittfarne/wpreset" target="_blank">http://github.com/vittfarne/wpreset</a>',
+    This is avaible @ <a href="http://github.com/vittfarne/WordPress-Password-Resetscript" target="_blank">http://github.com/vittfarne/WordPress-Password-Resetscript</a>',
             'langnames'     =>   [
                     'en'    =>  'Engelska',
                     'sv'    =>  'Svenska'
