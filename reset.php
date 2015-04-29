@@ -2,7 +2,7 @@
 /*
  * @author: Fredrik Vittfarne (http://fidde.nu)
  * @created: 1 October 2014
- * @updated: 8 October 2014
+ * @updated: 29 April 2015
  * Tested with Wordpress 4.
  */
 
@@ -47,9 +47,10 @@ if (isset($_GET['lang'])){
              'dbfail'        =>  'Database connection failed ...',
              'dbtest'        =>  'Testing connection to database ... ',
              'dbcons'        =>  'Database connection established  ...',
+             'useconf'       =>  'Use wp-config.php (Autofill)',
              'cmpl'         =>  'User inserted and given administrator privileges. You can now login.<br>Script complete.
         <br> Script created by Fredrik Vittfarne (<a href="http://fidde.nu" target="_blank">http://fidde.nu</a>).<br>
-        This is avaible @ <a href="http://github.com/vittfarne/WordPress-Password-Resetscript" target="_blank">http://github.com/vittfarne/WordPress-Password-Resetscript</a>',
+        This is avaible @ <a href="http://github.com/vittfarne/WordPress-Password-Resetscript" target="_blank">GitHub</a>',
              'langnames'     =>   [
                  'en'    =>  'English',
                  'sv'    =>  'Swedish'
@@ -72,9 +73,10 @@ if (isset($_GET['lang'])){
             'dbfail'        =>  'Databasanslutningen misslyckades ...',
             'dbtest'        =>  'Testar databasanslutningen ... ',
             'dbcons'        =>  'Databasanslutningen lyckades ...',
-            'cmpl'         =>  'User inserted and given administrator privileges. You can now login.<br>Script complete.
-    <br> Script created by Fredrik Vittfarne (<a href="http://fidde.nu" target="_blank">http://fidde.nu</a>).<br>
-    This is avaible @ <a href="http://github.com/vittfarne/WordPress-Password-Resetscript" target="_blank">http://github.com/vittfarne/WordPress-Password-Resetscript</a>',
+            'useconf'       =>  'Använd wp-config.php (Autofyll)',
+            'cmpl'         =>  'Användaren inlagt och administratörsrättigheter tilldelade. Du kan nu logga in.<br>Alla kommandon exekverade.
+    <br> Skapat av Fredrik Vittfarne (<a href="http://fidde.nu" target="_blank">http://fidde.nu</a>).<br>
+    Projeket finns på @ <a href="http://github.com/vittfarne/WordPress-Password-Resetscript" target="_blank">GitHub</a>',
             'langnames'     =>   [
                     'en'    =>  'Engelska',
                     'sv'    =>  'Svenska'
@@ -101,12 +103,46 @@ if (isset($_GET['lang'])){
              * @author Fredrik Vittfarne (http://fidde.nu)
              * Simple Javascript to switch between visible and hidden password fields
              */
-            function togglePW ($fieldID, $checkboxID){
-                var CheckboxInfo = document.getElementById($checkboxID);
+            function togglePW (fieldID, checkboxID){
+                var CheckboxInfo = document.getElementById(checkboxID);
                 if(CheckboxInfo.checked){
-                    document.getElementById($fieldID).type="text";
+                    document.getElementById(fieldID).type="text";
                 }else{
-                    document.getElementById($fieldID).type="password";
+                    document.getElementById(fieldID).type="password";
+                }
+            }
+            function wpconfig (checkboxID){
+                var CheckboxInfo = document.getElementById(checkboxID);
+                if(CheckboxInfo.checked){
+                    stateswitcher(false);
+
+                }else{
+                    stateswitcher(true);
+                }
+            }
+            function stateswitcher (state) {
+                toggleREQ("dbuser", state);
+                toggleREQ("dbhost", state);
+                toggleREQ("dbname", state);
+                toggleSHOW("dbuserrow", state);
+                toggleSHOW("dbnamerow", state);
+                toggleSHOW("dbhostrow", state);
+                toggleSHOW("dbpasswordrow", state);
+                toggleSHOW("tblprefixrow", state);
+            }
+            function toggleREQ(fieldID, state){
+                if(state){
+                    document.getElementById(fieldID).required = true;
+                }else{
+                    document.getElementById(fieldID).required = false;
+                }
+            }
+            function toggleSHOW(fieldID, state){
+                var element = document.getElementById(fieldID);
+                if(state){
+                    element.style.display='';
+                }else{
+                    element.style.display='none';
                 }
             }
         </script>
@@ -129,22 +165,34 @@ if (isset($_GET['lang'])){
             </select>
         </form>
         <?php
-
         if (!empty($_POST)){
             echo $LANG[$lng]['formsub'] . " <br>";
 
-            $info = [
-                'db' => [
+            $info['user'] = [
+                    'username'  =>  $_POST['newusrn'],
+                    'password'  =>  md5($_POST['newpasswd'])
+            ];
+
+            if (isset($_POST['useconf'])){
+                include_once('wp-config.php');
+                $info['db'] = [
+                        'host'      =>  DB_HOST,
+                        'user'      =>  DB_USER,
+                        'pass'      =>  DB_PASSWORD,
+                        'name'      =>  DB_NAME,
+                        'tblprefix' =>  $table_prefix
+                ];
+
+            } else {
+
+            $info['db'] = [
                     'host'      =>  $_POST['dbhost'],
                     'user'      =>  $_POST['dbuser'],
                     'pass'      =>  $_POST['dbpassword'],
                     'name'      =>  $_POST['dbname'],
                     'tblprefix' =>  $_POST['tblprefix']
-                ],
-                'user' => [
-                    'username'  =>  $_POST['newusrn'],
-                    'password'  =>  md5($_POST['newpasswd'])
-            ]];
+            ];
+            }
 
             echo $LANG[$lng]['dbtest'] . " <br>";
 
@@ -187,7 +235,22 @@ if (isset($_GET['lang'])){
 
         <form action="" method="post">
             <table>
+                <?php
+                if (file_exists("wp-config.php")) { ?>
                 <tr>
+                    <td>wp-config.php</td>
+                    <td><input name="useconf" id="useconf" type="checkbox" onclick="wpconfig('useconf');"><?php echo $LANG[$lng]['useconf']; ?></td>
+                </tr>
+
+                <?php
+                } else {
+                    ?>
+                        <!-- WP-config.php not found. Option not avaible -->
+                    <?php
+                }
+                ?>
+                <div id="dbdiv">
+                <tr id="dbhostrow">
                     <td>
                         <label for="dbhost"><?php echo $LANG[$lng]['dbhost']; ?>:</label>
                     </td>
@@ -195,7 +258,7 @@ if (isset($_GET['lang'])){
                         <input type="text" name="dbhost" id="dbhost" placeholder="<?php echo $LANG[$lng]['dbhost']; ?>" required/>
                     </td>
                 </tr>
-                <tr>
+                <tr id="dbnamerow">
                     <td>
                         <label for="dbname"><?php echo $LANG[$lng]['dbname']; ?>:</label>
                     </td>
@@ -203,7 +266,7 @@ if (isset($_GET['lang'])){
                         <input type="text" name="dbname" id="dbname" placeholder="<?php echo $LANG[$lng]['dbname']; ?>" required/>
                     </td>
                 </tr>
-                <tr>
+                <tr id="dbuserrow">
                     <td>
                         <label for="dbuser"><?php echo $LANG[$lng]['dbuser']; ?>:</label>
                     </td>
@@ -211,7 +274,7 @@ if (isset($_GET['lang'])){
                         <input type="text" name="dbuser" id="dbuser" placeholder="<?php echo $LANG[$lng]['dbuser']; ?>" required/>
                     </td>
                 </tr>
-                <tr>
+                <tr id="dbpasswordrow">
                     <td>
                         <label for="dbpassword"><?php echo $LANG[$lng]['dbpassword']; ?>:</label>
                     </td>
@@ -221,7 +284,7 @@ if (isset($_GET['lang'])){
                         <label for="dbpasswordtoggle"><?php echo $LANG[$lng]['plaintext']; ?></label>
                     </td>
                 </tr>
-                <tr>
+                <tr id="tblprefixrow">
                     <td>
                         <label for="tblprefix"><?php echo $LANG[$lng]['tblprefix']; ?>:</label>
                     </td>
@@ -229,6 +292,7 @@ if (isset($_GET['lang'])){
                         <input type="text" name="tblprefix" id="tblprefix" placeholder="<?php echo $LANG[$lng]['tblprefix']; ?>"/>
                     </td>
                 </tr>
+            </div>
                 <tr>
                     <td>
                         <label for="newusrn"><?php echo $LANG[$lng]['newusrn']; ?>:</label>
